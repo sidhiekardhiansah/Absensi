@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Absensi</string>
+
+    <string-array name="list_action">
+        <item>Choose Action</item>
+        <item>MASUK</item>
+        <item>KELUAR</item>
+        <item>IZIN</item>
+        <item>SAKIT</item>
+        <item>OFF</item>
+    </string-array>
+
+</resources>
