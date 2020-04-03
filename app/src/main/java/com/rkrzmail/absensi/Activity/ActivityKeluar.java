@@ -76,7 +76,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
     Button btnKirim;
     ImageView imageView;
-    EditText txtKeterangan;
+    EditText txtKeterangan, txtlocation2;
     Bitmap foto, bitmap;
     Spinner spinnerShift;
     String Gname, Gunit, Gbranch, Gposition, GNIK;
@@ -89,6 +89,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
     double latitude2;
     double longitude2;
 
+
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +98,8 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
         spinnerShift = findViewById(R.id.spinnershift);
         txtlocation = findViewById(R.id.location);
+        txtlocation2= findViewById(R.id.location2);
+        txtlocation2.setText(latitude+","+longitude);
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         Gname = pref.getString("name", "name");
         Gunit = pref.getString("unit", "unit");
@@ -123,7 +126,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
             requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    Activity#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -139,10 +142,12 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
            // startService(new Intent(this,MyLocationService .class));
             onGPS();
+            //getLocation();
         } else {
             //gps already exist
             getLocation();
         }
+
         btnTakePicture = findViewById(R.id.btnTakePicture);
         btnKirim = findViewById(R.id.btnkirim);
         imageView = findViewById(R.id.imageview);
@@ -157,16 +162,23 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
         btnKirim.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (txtKeterangan.getText().toString().length() == 0) {
-                    txtKeterangan.setError("keterangan belum di isi !");
-                }
-                if (imageView.getDrawable() == null) {
-                    Toast.makeText(ActivityKeluar.this, "foto blm di input", Toast.LENGTH_SHORT).show();
-                }
-                if (txtKeterangan.getText().toString().length() != 0 && imageView.getDrawable() != null) {
-                    sendDataAbsen();
-                    onBackPressed();
+                if(txtlocation2.getText().toString().equalsIgnoreCase("null,null")){
+                    Toast.makeText(ActivityKeluar.this, "silahkan nyalakan permission location", Toast.LENGTH_SHORT).show();
+                } else {
+                    if (imageView.getDrawable() == null) {
+                        Toast.makeText(ActivityKeluar.this, "foto blm di isi", Toast.LENGTH_SHORT).show();
+                    }
+                    if (txtKeterangan.getText().toString().length() == 0) {
+                        txtKeterangan.setError("keterangan belum di isi !");
+                    }
+                    if (imageView.getDrawable() == null && txtKeterangan.getText().toString().length() == 0) {
+                        txtKeterangan.setError("keterangan belum di isi !");
+                        Toast.makeText(ActivityKeluar.this, "foto blm di isi", Toast.LENGTH_SHORT).show();
+                    }
+                    if (txtKeterangan.getText().toString().length() != 0 && imageView.getDrawable() != null) {
+                        sendDataAbsen();
+                        onBackPressed();
+                    }
                 }
             }
         });
@@ -213,7 +225,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                 // txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else if (locationPassive != null) {
                 double lat = locationPassive.getLatitude();
@@ -221,7 +233,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                 // txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else if (locationNetwork != null) {
                 double lat = locationNetwork.getLatitude();
@@ -229,7 +241,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                 // txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else {
                 Toast.makeText(this, "Cant get your location", Toast.LENGTH_SHORT).show();
@@ -239,6 +251,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
     }
 
     private void onGPS() {
+
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
         alertDialogBuilder.setMessage("GPS is disabled in your device. Would you like to enable it?")
                 .setCancelable(false)
@@ -250,13 +263,7 @@ public class ActivityKeluar extends AppCompatActivity implements LocationListene
                                 startActivity(callGPSSettingIntent);
                             }
                         });
-        alertDialogBuilder.setNegativeButton("Cancel",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        dialog.cancel();
-                    }
-                });
-        AlertDialog alert = alertDialogBuilder.create();
+                AlertDialog alert = alertDialogBuilder.create();
         alert.show();
 
 

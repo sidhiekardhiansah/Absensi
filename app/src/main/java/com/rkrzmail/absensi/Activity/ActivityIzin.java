@@ -76,7 +76,7 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
 
     Button  btnKirim;
     ImageView imageView;
-    EditText txtKeterangan;
+    EditText txtKeterangan, txtlocation2;
     Bitmap foto, bitmap;
     ImageButton btnTakePicture;
     Spinner spinnerShift;
@@ -95,6 +95,8 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_izin);
         txtlocation= findViewById(R.id.location);
+        txtlocation2= findViewById(R.id.location2);
+        txtlocation2.setText(latitude+","+longitude);
         spinnerShift= findViewById(R.id.spinnershift);
 
         SharedPreferences pref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -130,20 +132,14 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
         if (Build.VERSION.SDK_INT>=23){
             requestPermissions(new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.ACCESS_COARSE_LOCATION,Manifest.permission.ACCESS_FINE_LOCATION}, 2);
         }
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    Activity#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for Activity#requestPermissions for more details.
-            return;
+        locationManager= (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
+        if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            onGPS();
+        } else {
+            //gps already exist
+            getLocation();
         }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-
-
         btnTakePicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -154,31 +150,26 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
         btnKirim.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                locationManager= (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-
-                if(!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)){
-                    onGPS();
+                if(txtlocation2.getText().toString().equalsIgnoreCase("null,null")){
+                    Toast.makeText(ActivityIzin.this, "silahkan nyalakan permission location", Toast.LENGTH_SHORT).show();
                 } else {
-                    //gps already exist
-                    getLocation();
-                }
-                if (txtKeterangan.getText().toString().length()== 0) {
-                    txtKeterangan.setError("keterangan belum di isi !");
-                }
-                if(imageView.getDrawable()==null) {
-                    Toast.makeText(ActivityIzin.this, "foto blm di input", Toast.LENGTH_SHORT).show();
-                }
-                if(txtKeterangan.getText().toString().length() != 0 && imageView.getDrawable() != null){
-
-                    sendDataAbsen();
-                    onBackPressed();
+                    if (imageView.getDrawable() == null) {
+                        Toast.makeText(ActivityIzin.this, "foto blm di isi", Toast.LENGTH_SHORT).show();
+                    }
+                    if (txtKeterangan.getText().toString().length() == 0) {
+                        txtKeterangan.setError("keterangan belum di isi !");
+                    }
+                    if (imageView.getDrawable() == null && txtKeterangan.getText().toString().length() == 0) {
+                        txtKeterangan.setError("keterangan belum di isi !");
+                        Toast.makeText(ActivityIzin.this, "foto blm di isi", Toast.LENGTH_SHORT).show();
+                    }
+                    if (txtKeterangan.getText().toString().length() != 0 && imageView.getDrawable() != null) {
+                        sendDataAbsen();
+                        onBackPressed();
+                    }
                 }
             }
         });
-
-
     }
 
     private void onGPS() {
@@ -214,7 +205,7 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                 //txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else if(locationPassive != null){
                 double lat= locationPassive.getLatitude();
@@ -222,7 +213,7 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                // txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else if(locationNetwork != null){
                 double lat= locationNetwork.getLatitude();
@@ -230,7 +221,7 @@ public class ActivityIzin extends AppCompatActivity implements LocationListener 
 
                 latitude = String.valueOf(lat);
                 longitude = String.valueOf(longi);
-
+                txtlocation2.setText(latitude+","+longitude);
                // txtlocation.setText("your location"+"\n"+"latitude"+latitude+"\n"+"longitude"+longitude);
             } else {
                 Toast.makeText(this, "Cant get your location", Toast.LENGTH_SHORT).show();
